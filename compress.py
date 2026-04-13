@@ -7,13 +7,15 @@ def compress_pdf(input_path, dpi=300):
     temp_path = input_path.replace(".pdf", "_temp.pdf")
     doc = fitz.open(input_path)
     new_doc = fitz.open()
+    pages = doc.page_count
     
-    for page in doc:
+    for index, page in enumerate(doc, start=1):
         pix = page.get_pixmap(dpi=dpi)
         rect = page.rect
         new_page = new_doc.new_page(width=rect.width, height=rect.height)
         new_page.insert_image(rect, pixmap=pix)
-    
+        print(f"\rProcessed {index}/{pages} pages", end="", flush=True)
+
     # Overwrite the input PDF with compressed version
     new_doc.save(temp_path, garbage=4, deflate=True, clean=True, incremental=False)
     new_doc.close()
@@ -24,7 +26,7 @@ def compress_pdf(input_path, dpi=300):
 
 def main():
     parser = argparse.ArgumentParser(description="Flatten & compress a PDF by rasterizing its pages.")
-    parser.add_argument("pdf", help="Path to the PDF file to compress")
+    parser.add_argument("--pdf", help="Path to the PDF file to compress")
     parser.add_argument("--dpi", type=int, default=300, help="DPI for rasterization (default: 300)")
     args = parser.parse_args()
 
